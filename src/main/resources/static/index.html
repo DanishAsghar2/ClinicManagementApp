@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Clinic Management</h1>
+    </header>
+    <main>
+        <h2>Pet Management</h2>
+
+        <!-- Form to Add a Pet -->
+        <form id="addPetForm">
+            <h3>Add a New Pet</h3>
+            <input type="text" id="name" placeholder="Pet Name" required>
+            <input type="text" id="type" placeholder="Pet Type" required>
+            <input type="text" id="ownerName" placeholder="Owner Name" required>
+            <button type="button" onclick="addPet()">Add Pet</button>
+        </form>
+
+        <!-- Form to Delete a Pet -->
+        <form id="deletePetForm">
+            <h3>Delete a Pet</h3>
+            <input type="number" id="deletePetId" placeholder="Pet ID" required>
+            <button type="button" onclick="deletePet()">Delete Pet</button>
+        </form>
+
+        <!-- Table to Display Pets -->
+        <h3>All Pets</h3>
+        <button onclick="getAllPets()">Refresh List</button>
+        <table id="petsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Owner</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Pets will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        const API_URL = '/api/pets';
+
+        
+        function getAllPets() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#petsTable tbody');
+                    tableBody.innerHTML = ''; 
+
+                    data.forEach(pet => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${pet.id}</td>
+                            <td>${pet.name}</td>
+                            <td>${pet.type}</td>
+                            <td>${pet.ownerName}</td>
+                            <td>${pet.createdAt}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching pets:', error));
+        }
+
+        function addPet() {
+            const name = document.getElementById('name').value;
+            const type = document.getElementById('type').value;
+            const ownerName = document.getElementById('ownerName').value;
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, type, ownerName })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Pet added successfully!');
+                        getAllPets(); // Refresh the list
+                        document.getElementById('addPetForm').reset();
+                    } else {
+                        alert('Error adding pet');
+                    }
+                })
+                .catch(error => console.error('Error adding pet:', error));
+        }
+
+        function deletePet() {
+            const petId = document.getElementById('deletePetId').value;
+
+            fetch(`${API_URL}/${petId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Pet deleted successfully!');
+                        getAllPets(); 
+                        document.getElementById('deletePetForm').reset();
+                    } else {
+                        alert('Error deleting pet');
+                    }
+                })
+                .catch(error => console.error('Error deleting pet:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', getAllPets);
+    </script>
+</body>
+</html>
